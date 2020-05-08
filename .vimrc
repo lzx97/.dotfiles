@@ -15,7 +15,10 @@ set smarttab
 set shiftwidth=2
 set tabstop=2
 
-
+" Always show the status line
+set laststatus=2
+" Format the status line
+set statusline=\ %{HasPaste()}%F%m%r%h\ %w\ \ CWD:\ %r%{getcwd()}%h\ \ \ Line:\ %l\ \ Column:\ %c
 
 " Display line numbers
 set number
@@ -33,6 +36,7 @@ set history=500
 
 " Autoread when file is changed from outside
 set autoread
+autocmd FocusGained,BufEnter * checktime
 
 " Force language to be English avoid things being messed up by system lang
 " settings
@@ -59,13 +63,6 @@ set encoding=utf8
 " File formats setting
 set fileformats=unix,dos,mac
 
-
-" Move up/down editor lines
-nnoremap j gj
-nnoremap k gk
-
-
-
 " Searches
 set hlsearch
 set incsearch
@@ -74,19 +71,30 @@ set smartcase
 
 " Fuzzy file find
 " Search down recursively into subdirectories
-" Provid tab completion for all file-related tasks
+" Provide tab completion for all file-related tasks
 set path+=**
 " Display all matching files when tab complete
 set wildmenu
+" Ignore compiled files
+set wildignore=*.o,*.a,*.so,*~,*.pyc
+if has("win32")
+    set wildignore+=.git\*,,.svn\*
+else
+    set wildignore+=*/.git/*,*/.svn/*,*/.DS_Store
+endif
+
+" Move up/down editor lines
+nnoremap j gj
+nnoremap k gk
+
+" Remap VIM 0 to first non-blank character
+map 0 ^
 
 " remove tailing white spaces when saving
 autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
 
-" Plugin configurations for vim-plug
-" Plugins will be downloaded under the directory specified below.
-call plug#begin('~/.vim/plugged')
-
-
+" Return to last edit position when opening files
+autocmd BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
 
 " function to strip all trailing whitespaces without corrupting cursor
 " position and last search
@@ -99,9 +107,22 @@ function <SID>StripTrailingWhitespaces()
     call cursor(l, c)
 endfun
 
+" Returns true if paste mode is enabled
+function! HasPaste()
+    if &paste
+        return 'PASTE MODE  '
+    endif
+    return ''
+endfunction
+
+" Plugin configurations for vim-plug
+" Plugins will be downloaded under the directory specified below.
+call plug#begin('~/.vim/plugged')
+
 " Nerd Tree
 Plug 'scrooloose/nerdtree'
 " Surround for paren completion
 Plug 'tpope/vim-surround'
 " List ends here. Plugins become visible to Vim after this call.
+
 call plug#end()
